@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/static/css/main.f9770f1d.css",
-    "main.js": "/static/js/main.1c83bb77.js",
-    "static/js/453.ad9c5e39.chunk.js": "/static/js/453.ad9c5e39.chunk.js",
-    "index.html": "/index.html",
-    "main.f9770f1d.css.map": "/static/css/main.f9770f1d.css.map",
-    "main.1c83bb77.js.map": "/static/js/main.1c83bb77.js.map",
-    "453.ad9c5e39.chunk.js.map": "/static/js/453.ad9c5e39.chunk.js.map"
+    "main.css": "/SaftyChecklist-DEMO/static/css/main.f9770f1d.css",
+    "main.js": "/SaftyChecklist-DEMO/static/js/main.04510429.js",
+    "static/js/453.ad9c5e39.chunk.js": "/SaftyChecklist-DEMO/static/js/453.ad9c5e39.chunk.js",
+    "index.html": "/SaftyChecklist-DEMO/index.html",
+    "main.f9770f1d.css.map": "/SaftyChecklist-DEMO/static/css/main.f9770f1d.css.map",
+    "main.04510429.js.map": "/SaftyChecklist-DEMO/static/js/main.04510429.js.map",
+    "453.ad9c5e39.chunk.js.map": "/SaftyChecklist-DEMO/static/js/453.ad9c5e39.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.f9770f1d.css",
-    "static/js/main.1c83bb77.js"
+    "static/js/main.04510429.js"
   ]
 }
