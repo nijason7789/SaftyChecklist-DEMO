@@ -27,7 +27,8 @@ const FormHeader: React.FC<FormHeaderProps> = ({
 
   useEffect(() => {
     // Fetch the case data from the public JSON file
-    fetch('/data/caseAndPIC.json')
+    // 使用 process.env.PUBLIC_URL 來獲取正確的基礎路徑
+    fetch(`${process.env.PUBLIC_URL}/data/caseAndPIC.json`)
       .then(response => response.json())
       .then((data: CaseData) => {
         // Extract the case names (keys) from the data

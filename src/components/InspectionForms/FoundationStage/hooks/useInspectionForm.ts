@@ -42,7 +42,8 @@ export const useInspectionForm = () => {
   useEffect(() => {
     const fetchInspectionItems = async () => {
       try {
-        const response = await fetch('/data/inspection_item.json');
+        // 使用 process.env.PUBLIC_URL 來獲取正確的基礎路徑
+        const response = await fetch(`${process.env.PUBLIC_URL}/data/inspection_item.json`);
         const data = await response.json();
         if (data.FoundationStage) {
           setInspectionItems(createInitialInspectionItems(data.FoundationStage));
