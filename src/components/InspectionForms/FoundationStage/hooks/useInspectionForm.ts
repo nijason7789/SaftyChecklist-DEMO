@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import useForm from '../../../../hooks/useForm';
 import { InspectionItemData } from '../components';
 import { useAuth } from '../../../../context/AuthContext';
+import { exportElementToPDF } from '../../../../utils/pdfExport';
 
 // Define form data interface
 export interface FoundationStageFormData {
@@ -37,6 +38,9 @@ export const useInspectionForm = () => {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [inspectionItems, setInspectionItems] = useState<InspectionItemData[]>([]);
+  
+  // 使用 ref 來避免無限循環更新
+  const hasSetInspectionItems = useRef(false);
 
   // Fetch inspection items from JSON file
   useEffect(() => {
@@ -120,7 +124,10 @@ export const useInspectionForm = () => {
   
   // Update form values when inspection items are loaded
   useEffect(() => {
-    if (inspectionItems.length > 0) {
+    if (inspectionItems.length > 0 && !hasSetInspectionItems.current) {
+      // 設置標記以避免重複更新
+      hasSetInspectionItems.current = true;
+      
       // Update the inspectionItems in the form values
       // Use any type to avoid TypeScript errors with complex form values
       handleChange({
@@ -173,6 +180,37 @@ export const useInspectionForm = () => {
     window.print();
   };
 
+  // Handle export to PDF functionality
+  const handleExportToPDF = async () => {
+    // 獲取表單元素
+    const formElement = document.querySelector('.foundation-stage-form-container') as HTMLElement;
+    if (!formElement) {
+      console.error('找不到表單元素');
+      return;
+    }
+
+    // 設定檔案名稱格式：案場名稱_每日巡檢紀錄-基礎階段_日期.pdf
+    const fileName = `${values.siteName}_每日巡檢紀錄-基礎階段_${values.date}.pdf`;
+    
+    // 需要隱藏的元素
+    const hideElements = formElement.querySelectorAll('.form-actions button, .dashboard-header');
+    
+    // 使用工具函數導出 PDF
+    const success = await exportElementToPDF(formElement, fileName, {
+      hideElements,
+      scale: 3,  // 提高解析度以確保文字清晰
+      margin: 10, // 增加邊距
+      pageFormat: 'a4',
+      orientation: 'p' // portrait 直向
+    });
+    
+    if (success) {
+      console.log('PDF 導出成功');
+    } else {
+      console.error('PDF 導出失敗');
+    }
+  };
+
   // Get date constraints
   const today = new Date().toISOString().split('T')[0];
   const threeDaysAgo = new Date();
@@ -197,6 +235,7 @@ export const useInspectionForm = () => {
     submitError,
     handleSignatureConfirm,
     handlePrint,
+    handleExportToPDF,
     dateConstraints: {
       min: threeDaysAgoFormatted,
       max: today

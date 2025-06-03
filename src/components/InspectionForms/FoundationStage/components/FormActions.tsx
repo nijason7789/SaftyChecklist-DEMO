@@ -4,12 +4,14 @@ import { Button } from '../../../common';
 interface FormActionsProps {
   onSubmit: () => void;
   onPrint: () => void;
+  onExportPDF?: () => void; // 添加 PDF 導出功能
   isSubmitting: boolean;
 }
 
 const FormActions: React.FC<FormActionsProps> = ({
   onSubmit,
   onPrint,
+  onExportPDF,
   isSubmitting
 }) => {
   return (
@@ -22,6 +24,16 @@ const FormActions: React.FC<FormActionsProps> = ({
       >
         列印表單
       </Button>
+      {onExportPDF && (
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={onExportPDF}
+          disabled={isSubmitting}
+        >
+          導出 PDF
+        </Button>
+      )}
       <Button
         type="submit"
         variant="primary"

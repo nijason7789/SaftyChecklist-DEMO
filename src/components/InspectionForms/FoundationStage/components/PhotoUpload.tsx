@@ -20,12 +20,19 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
   return (
     <div className="photo-upload">
       <h3>現場照片</h3>
-      <input
-        type="file"
-        id="photo-upload"
-        accept="image/*"
-        onChange={handlePhotoUpload}
-      />
+      <div className="photo-actions">
+        <input
+          type="file"
+          id="photo-upload"
+          accept="image/*"
+          onChange={handlePhotoUpload}
+          capture="environment"
+          className="photo-input"
+        />
+        <label htmlFor="photo-upload" className="camera-button">
+          開啟相機拍攝
+        </label>
+      </div>
       {photoDataURL && (
         <div className="photo-preview">
           <img src={photoDataURL} alt="現場照片" />

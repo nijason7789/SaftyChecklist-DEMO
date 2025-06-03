@@ -28,7 +28,8 @@ const FoundationStageForm: React.FC = () => {
     submitSuccess,
     submitError,
     handleSignatureConfirm,
-    handlePrint
+    handlePrint,
+    handleExportToPDF
   } = useInspectionForm();
   
   return (
@@ -40,7 +41,13 @@ const FoundationStageForm: React.FC = () => {
 
       <form className="inspection-form" onSubmit={(e) => {
         e.preventDefault();
-        setShowSignaturePad(true);
+        // 檢查是否已有簽名，如果沒有則顯示簽名板
+        if (!signatureDataURL) {
+          setShowSignaturePad(true);
+        } else {
+          // 如果已有簽名，直接提交表單
+          handleSignatureConfirm(signatureDataURL);
+        }
       }}>
         {/* Form Header with Date and Site Selection */}
         <FormHeader
@@ -74,12 +81,15 @@ const FoundationStageForm: React.FC = () => {
 
           <div className="signature-area">
             <h3>巡檢人員簽章</h3>
-            <div className="signature-display">
+            <div 
+              className="signature-display" 
+              onClick={() => setShowSignaturePad(true)}
+            >
               {signatureDataURL ? (
                 <img src={signatureDataURL} alt="簽名" />
               ) : (
                 <div className="signature-placeholder">
-                  點擊「送出」後在此處簽名
+                  點擊此處進行簽名
                 </div>
               )}
             </div>
@@ -101,6 +111,7 @@ const FoundationStageForm: React.FC = () => {
         <FormActions
           onSubmit={() => setShowSignaturePad(true)}
           onPrint={handlePrint}
+          onExportPDF={handleExportToPDF}
           isSubmitting={isSubmitting}
         />
 

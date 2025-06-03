@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useAuth } from '../../../../context/AuthContext';
+import { useUserCases } from '../../../../services/inspectionService';
 
 interface FormHeaderProps {
   date: string;
@@ -9,10 +11,6 @@ interface FormHeaderProps {
   onInspectorChange: (inspector: string) => void;
 }
 
-interface CaseData {
-  [key: string]: string[];
-}
-
 const FormHeader: React.FC<FormHeaderProps> = ({
   date,
   site,
@@ -21,39 +19,63 @@ const FormHeader: React.FC<FormHeaderProps> = ({
   onSiteChange,
   onInspectorChange,
 }) => {
-  const [caseOptions, setCaseOptions] = useState<string[]>([]);
-  const [inspectorOptions, setInspectorOptions] = useState<string[]>([]);
-  const [caseData, setCaseData] = useState<CaseData>({});
-
-  useEffect(() => {
-    // Fetch the case data from the public JSON file
-    // 使用 process.env.PUBLIC_URL 來獲取正確的基礎路徑
-    fetch(`${process.env.PUBLIC_URL}/data/caseAndPIC.json`)
-      .then(response => response.json())
-      .then((data: CaseData) => {
-        // Extract the case names (keys) from the data
-        const caseNames = Object.keys(data);
-        setCaseOptions(caseNames);
-        setCaseData(data);
-      })
-      .catch(error => {
-        console.error('Error loading case data:', error);
-      });
-  }, []);
+  // 獲取登入用戶信息
+  const { user } = useAuth();
   
-  // Update inspector options when site changes
-  useEffect(() => {
-    if (site && caseData[site]) {
-      setInspectorOptions(caseData[site]);
-      
-      // If current inspector is not in the new list, reset it
-      if (inspector && !caseData[site].includes(inspector)) {
-        onInspectorChange('');
-      }
+  // 使用自定義 Hook 獲取用戶的案場列表
+  const { userCases, isLoading: isLoadingCases } = useUserCases(user?.name);
+  
+  // 使用 ref 追蹤狀態，避免重複觸發
+  const isInitialSiteMount = useRef(true);
+  
+  // 計算日期範圍 - 確保使用本地時間並處理時區問題
+  const getTodayDateString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
+  const getDateMinusDays = (days: number) => {
+    const date = new Date();
+    date.setDate(date.getDate() - days);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
+  const maxDate = getTodayDateString();
+  const minDate = getDateMinusDays(3);
+  
+  // 處理日期變更並驗證日期範圍
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedValue = e.target.value;
+    
+    if (selectedValue <= maxDate && selectedValue >= minDate) {
+      onDateChange(selectedValue);
     } else {
-      setInspectorOptions([]);
+      e.target.value = date;
     }
-  }, [site, caseData, inspector, onInspectorChange]);
+  };
+
+  // 當用戶案場列表變更時，自動選擇案場
+  useEffect(() => {
+    // 如果有案場數據且尚未選擇案場或初次加載
+    if (userCases.length > 0 && (!site || isInitialSiteMount.current)) {
+      isInitialSiteMount.current = false;
+      onSiteChange(userCases[0]);
+    }
+  }, [userCases, site, onSiteChange]);
+
+  // 當案場變更時，自動設置巡檢人員為當前登入用戶
+  useEffect(() => {
+    // 確保用戶已登入且有選擇案場
+    if (user?.name && site && inspector !== user.name) {
+      onInspectorChange(user.name);
+    }
+  }, [site, user?.name, inspector, onInspectorChange]);
 
   return (
     <div className="form-header">
@@ -64,43 +86,44 @@ const FormHeader: React.FC<FormHeaderProps> = ({
             type="date"
             id="inspection-date"
             value={date}
-            onChange={(e) => onDateChange(e.target.value)}
+            onChange={handleDateChange}
             required
+            max={maxDate}
+            min={minDate}
           />
         </div>
         <div className="form-field">
           <label htmlFor="site-name">案場名稱：</label>
-          <select
-            id="site-name"
-            value={site}
-            onChange={(e) => onSiteChange(e.target.value)}
-            required
-          >
-            <option value="">請選擇案場：</option>
-            {caseOptions.map(caseName => (
-              <option key={caseName} value={caseName}>
-                {caseName}
-              </option>
-            ))}
-          </select>
+          {isLoadingCases ? (
+            <div className="loading-indicator">正在加載案場資料...</div>
+          ) : userCases.length === 0 ? (
+            <div className="no-data-message">無可用案場</div>
+          ) : (
+            <select
+              id="site-name"
+              value={site}
+              onChange={(e) => onSiteChange(e.target.value)}
+              required
+            >
+              <option value="">請選擇案場：</option>
+              {userCases.map(caseName => (
+                <option key={caseName} value={caseName}>
+                  {caseName}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         
         <div className="form-field">
           <label htmlFor="inspector">巡檢人員：</label>
-          <select
+          <div className="inspector-display auto-filled">{user?.name || '未登入用戶'}</div>
+          <input 
+            type="hidden" 
             id="inspector"
-            value={inspector}
-            onChange={(e) => onInspectorChange(e.target.value)}
-            required
-            disabled={!site || inspectorOptions.length === 0}
-          >
-            <option value="">請選擇巡檢人員</option>
-            {inspectorOptions.map(inspectorName => (
-              <option key={inspectorName} value={inspectorName}>
-                {inspectorName}
-              </option>
-            ))}
-          </select>
+            value={user?.name || ''}
+            onChange={() => {}} 
+          />
         </div>
       </div>
     </div>

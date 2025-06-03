@@ -38,7 +38,12 @@ interface AuthProviderProps {
 
 // Auth provider component
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  // 使用模擬用戶資料，模擬已登入的用戶為「謝昀霖」
+  const [user, setUser] = useState<User | null>({
+    id: 'mock-user-id',
+    email: 'hsieh.yunlin@example.com',
+    name: '謝昀霖'
+  });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,13 +58,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Simulate fetching user data
           // In a real app, you would make an API call to get the user data
           await new Promise(resolve => setTimeout(resolve, 500));
-          
-          // Mock user data
-          setUser({
-            id: '1',
-            email: 'user@example.com',
-            name: 'Test User',
-          });
         }
       } catch (err) {
         console.error('Auth status check failed:', err);

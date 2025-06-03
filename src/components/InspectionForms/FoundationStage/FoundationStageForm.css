@@ -1,10 +1,13 @@
 .foundation-stage-form-container {
-  max-width: 1000px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 20px;
   background-color: var(--background-color);
   color: var(--text-color);
   font-family: var(--font-family);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .form-header {
@@ -26,10 +29,28 @@
   padding: 20px;
   border-radius: 8px;
   background-color: var(--card-background);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-field {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.auto-filled {
+  background-color: #f5f5f5;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  color: #2e2c2c;
+}
+
+.site-display,
+.inspector-display {
+  min-height: 8px;
+  line-height: 8px;
+  font-weight: normal;
+  display: inline-block;
 }
 
 .form-group {
@@ -130,17 +151,53 @@
 
 .photo-preview img {
   max-width: 100%;
-  max-height: 120px;
+  max-height: 300px;
   border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-top: 8px;
+}
+
+.photo-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.photo-input {
+  display: none;
+}
+
+.camera-button {
+  display: inline-block;
+  background-color: var(--primary-color, #4a90e2);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.camera-button:hover {
+  background-color: var(--primary-dark-color, #3a7bc8);
 }
 
 .signature-display {
-  height: 100px;
-  border: 1px solid var(--border-color);
+  border: 1px dashed var(--border-color);
+  height: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--input-background);
+  margin-top: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.signature-display:hover {
+  background-color: rgba(74, 144, 226, 0.05);
+  border-color: var(--primary-color, #4a90e2);
 }
 
 .signature-placeholder {
