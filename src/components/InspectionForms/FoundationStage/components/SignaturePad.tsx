@@ -16,18 +16,39 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
   const contextRef = useRef<CanvasRenderingContext2D | null>(null);
   const isDrawingRef = useRef(false);
 
-  // Initialize canvas when component is visible
-  useEffect(() => {
-    if (isVisible && canvasRef.current) {
+  // Initialize and resize canvas
+  const resizeCanvas = () => {
+    if (canvasRef.current) {
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
       
+      // Adjust for device pixel ratio for sharper drawing
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+
+      // Set canvas attributes based on its display size
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+
       if (context) {
+        context.scale(dpr, dpr); // Scale context to match DPR
         context.lineWidth = 2;
         context.lineCap = 'round';
         context.strokeStyle = '#000';
         contextRef.current = context;
+        // Redraw existing signature if any (optional, depends on requirements)
+        // If you need to preserve signature across resizes, you'd store points and redraw
       }
+    }
+  };
+
+  useEffect(() => {
+    if (isVisible) {
+      resizeCanvas(); // Initial resize
+      window.addEventListener('resize', resizeCanvas);
+      return () => {
+        window.removeEventListener('resize', resizeCanvas);
+      };
     }
   }, [isVisible]);
 
@@ -42,16 +63,20 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
     
     const rect = canvas.getBoundingClientRect();
     let x, y;
-    
+    const dpr = window.devicePixelRatio || 1;
+    let eventX, eventY;
+
     if ('touches' in e) {
-      // Touch event
-      x = e.touches[0].clientX - rect.left;
-      y = e.touches[0].clientY - rect.top;
+      eventX = e.touches[0].clientX;
+      eventY = e.touches[0].clientY;
     } else {
-      // Mouse event
-      x = e.clientX - rect.left;
-      y = e.clientY - rect.top;
+      eventX = e.clientX;
+      eventY = e.clientY;
     }
+
+    // Calculate position relative to canvas, accounting for display scaling and DPR
+    x = (eventX - rect.left) * (canvas.width / dpr / canvas.offsetWidth);
+    y = (eventY - rect.top) * (canvas.height / dpr / canvas.offsetHeight);
     
     contextRef.current.beginPath();
     contextRef.current.moveTo(x, y);
@@ -65,16 +90,20 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
     
     const rect = canvas.getBoundingClientRect();
     let x, y;
-    
+    const dpr = window.devicePixelRatio || 1;
+    let eventX, eventY;
+
     if ('touches' in e) {
-      // Touch event
-      x = e.touches[0].clientX - rect.left;
-      y = e.touches[0].clientY - rect.top;
+      eventX = e.touches[0].clientX;
+      eventY = e.touches[0].clientY;
     } else {
-      // Mouse event
-      x = e.clientX - rect.left;
-      y = e.clientY - rect.top;
+      eventX = e.clientX;
+      eventY = e.clientY;
     }
+
+    // Calculate position relative to canvas, accounting for display scaling and DPR
+    x = (eventX - rect.left) * (canvas.width / dpr / canvas.offsetWidth);
+    y = (eventY - rect.top) * (canvas.height / dpr / canvas.offsetHeight);
     
     contextRef.current.lineTo(x, y);
     contextRef.current.stroke();
@@ -132,8 +161,6 @@ const SignaturePad: React.FC<SignaturePadProps> = ({
         <h3>請在此處簽名</h3>
         <canvas
           ref={canvasRef}
-          width={560}
-          height={200}
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
