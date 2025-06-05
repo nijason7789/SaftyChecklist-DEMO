@@ -82,9 +82,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Mock successful login
       const userData: User = {
-        id: '1',
-        email,
-        name: 'Test User',
+        id: 'mock-user-id', // Use the same ID as initial mock
+        email, // Keep email from input for realism of login
+        name: '謝昀霖', // Use the consistent mock name
       };
       
       // Store token in localStorage using our type-safe utility
