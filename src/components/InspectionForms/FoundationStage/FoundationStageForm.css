@@ -268,23 +268,123 @@
 
 /* Print styles */
 @media print {
+  /* 1. 隱藏頁面上的所有其他內容 */
+  body * {
+    visibility: hidden;
+  }
+
+  /* 2. 僅顯示你想要打印的表單容器及其所有子元素 */
+  .foundation-stage-form-container,
+  .foundation-stage-form-container * {
+    visibility: visible;
+  }
+
+  /* 3. 將表單容器設置為頁面的頂部，並佔滿寬度 */
   .foundation-stage-form-container {
-    padding: 0;
-    max-width: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 10mm; /* 給打印內容一些邊距 */
+    margin: 0;
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important; /* 覆蓋屏幕樣式中的 max-width */
+    background-color: white !important; /* 確保背景是白色 */
+    color: black !important; /* 確保文字是黑色 */
   }
 
+  /* 4. 明確隱藏表單內部不需要打印的元素 */
   .form-actions,
-  input[type="file"] {
-    display: none;
+  .dashboard-header, /* 假設 .dashboard-header 是存在的並需要隱藏 */
+  input[type="file"],
+  .signature-modal,
+  button, /* 通常隱藏所有按鈕 */
+  [data-no-print] /* 可以給不想打印的元素添加 data-no-print 屬性 */
+  {
+    display: none !important;
   }
 
+  /* 5. 確保表單元素在打印時看起來合適 */
   .inspection-form {
-    border: none;
-    padding: 0;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
   }
 
-  .signature-modal {
-    display: none;
+  /* 確保輸入框和下拉框的值能被打印出來 */
+  input, select, textarea {
+    border: 1px solid #ccc !important;
+    background-color: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  /* 移除簽名區域的交互樣式 */
+  .signature-display {
+    border-style: solid !important; /* 如果你希望打印時有邊框 */
+    cursor: default !important;
+    height: auto !important; /* 讓圖片決定高度 */
+    min-height: 100px; /* 保持一個最小高度 */
+  }
+  .signature-display img {
+    max-width: 100%;
+    height: auto;
+    display: block; /* 確保圖片正確顯示 */
+  }
+  .signature-display:hover {
+    background-color: transparent !important;
+    border-color: #ccc !important;
+  }
+
+  /* 隱藏簽名區域的佔位符文字 */
+  .signature-placeholder {
+    display: none !important;
+  }
+
+  /* 確保表格正確打印 */
+  .inspection-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto; /* 允許表格跨頁 */
+  }
+  .inspection-table th,
+  .inspection-table td {
+    border: 1px solid #666 !important; /* 使用深色邊框 */
+    padding: 5px !important;
+    page-break-inside: avoid; /* 盡量避免單元格內容跨頁 */
+  }
+  .inspection-table th {
+    background-color: #f0f0f0 !important; /* 淺灰色表頭 */
+  }
+
+  /* 處理圖片預覽 */
+  .photo-preview img {
+    max-width: 200px !important; /* 限制打印時圖片大小 */
+    max-height: 200px !important;
+    border: 1px solid #ccc !important;
+  }
+
+  /* 新增：嘗試避免在這些元素內部斷頁 */
+  .form-field, /* 針對表單中的每個欄位區塊 */
+  .inspection-item, /* 假設您有這樣的 class 給每個巡檢項目 */
+  .inspection-item-container, /* 或者類似的巡檢項目容器 class */
+  .form-section, /* 如果您有更大的表單分區 */
+  .photo-preview-container, /* 包含圖片和其相關信息的容器 */
+  .signature-display, /* 簽名顯示區域 */
+  .form-meta > div, /* 表單元數據中的直接子div，如日期、案場名稱 */
+  p, /* 一般段落 */
+  li /* 列表項目 */
+  {
+    page-break-inside: avoid !important; /* 嘗試避免在元素內部分頁 */
+  }
+
+  /* 如果有特定的備註區域，也可以單獨設定 */
+  .notes-field-container, /* 假設備註欄位有一個容器 */
+  textarea.form-input /* 直接對 textareas */
+  {
+    page-break-inside: avoid !important;
   }
 }
 

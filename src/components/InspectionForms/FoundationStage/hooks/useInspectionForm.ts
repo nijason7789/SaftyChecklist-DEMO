@@ -190,24 +190,30 @@ export const useInspectionForm = () => {
     }
 
     // 設定檔案名稱格式：案場名稱_每日巡檢紀錄-基礎階段_日期.pdf
-    const fileName = `${values.siteName}_每日巡檢紀錄-基礎階段_${values.date}.pdf`;
+    const siteNameForFile = values.siteName || '未提供案場';
+    const dateForFile = values.date || new Date().toISOString().split('T')[0];
+    const fileName = `${siteNameForFile}_每日巡檢紀錄-基礎階段_${dateForFile}.pdf`;
     
     // 需要隱藏的元素
-    const hideElements = formElement.querySelectorAll('.form-actions button, .dashboard-header');
+    const elementsToHide = formElement.querySelectorAll('.form-actions button, .dashboard-header');
     
-    // 使用工具函數導出 PDF
-    const success = await exportElementToPDF(formElement, fileName, {
-      hideElements,
-      scale: 3,  // 提高解析度以確保文字清晰
-      margin: 10, // 增加邊距
-      pageFormat: 'a4',
-      orientation: 'p' // portrait 直向
-    });
-    
-    if (success) {
-      console.log('PDF 導出成功');
-    } else {
-      console.error('PDF 導出失敗');
+    try {
+      const success = await exportElementToPDF(formElement, fileName, {
+        hideElements: elementsToHide,
+        scale: 3,  // Keep high scale for clarity on PDF
+        margin: 10, // Page margin in mm
+        pageFormat: 'a4',
+        orientation: 'p', // portrait
+        enforcedWidth: 800, // Force desktop width (matches .foundation-stage-form-container max-width)
+      });
+      
+      if (success) {
+        console.log('PDF 導出成功:', fileName);
+      } else {
+        console.error('PDF 導出失敗');
+      }
+    } catch (exportError) {
+      console.error('PDF 導出過程中發生意外錯誤:', exportError);
     }
   };
 
