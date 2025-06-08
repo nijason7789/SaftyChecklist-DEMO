@@ -9,9 +9,14 @@ interface PhotoUploadProps {
 const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }) => {
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (file) {
       console.log(`原始檔案大小: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
       console.log(`原始檔案類型: ${file.type}`);
+      if (file.size > 5 * 1024 * 1024) {
+        alert("照片過大，請重新拍攝 (小於 5MB)");
+        return onPhotoChange(null);
+      }
 
       // 設定壓縮選項
       const options = {
@@ -25,19 +30,8 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
       try {
         // 壓縮圖片
         const compressedFile = await imageCompression(file, options);
-        console.log(`壓縮後檔案大小: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
-        console.log(`壓縮後檔案類型: ${compressedFile.type}`);
-
-        // 將壓縮後的檔案轉換為 Base64 Data URL
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          onPhotoChange(event.target?.result as string);
-        };
-        reader.onerror = (error) => {
-          console.error('FileReader 錯誤:', error);
-          onPhotoChange(null); // 或其他錯誤處理
-        };
-        reader.readAsDataURL(compressedFile);
+        const objectURL = URL.createObjectURL(compressedFile);
+        onPhotoChange(objectURL);
 
       } catch (error) {
         console.error('圖片壓縮失敗:', error);
