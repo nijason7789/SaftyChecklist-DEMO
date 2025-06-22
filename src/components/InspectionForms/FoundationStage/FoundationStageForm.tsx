@@ -14,8 +14,6 @@ const FoundationStageForm: React.FC = () => {
   // Use the custom hook for form logic
   const {
     values,
-    errors,
-    touched,
     handleChange,
     handleStatusChange,
     handleNoteChange,
@@ -23,7 +21,7 @@ const FoundationStageForm: React.FC = () => {
     setShowSignaturePad,
     signatureDataURL,
     photoDataURL,
-    setPhotoDataURL,
+    handlePhotoChange, // Use the new handler
     isSubmitting,
     submitSuccess,
     submitError,
@@ -75,7 +73,7 @@ const FoundationStageForm: React.FC = () => {
         <div className="signature-photo-container">
           {/* Photo Upload Component */}
           <PhotoUpload
-            onPhotoChange={setPhotoDataURL}
+            onPhotoChange={handlePhotoChange} // Pass the new handler to the component
             photoDataURL={photoDataURL}
           />
 

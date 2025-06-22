@@ -13,7 +13,7 @@ export interface FoundationStageFormData {
   inspectionItems: InspectionItemData[];
   otherNotes: string;
   signature: string | null;
-  photo: string | null;
+  photo: File | null; // Changed to store the File object for upload
 }
 
 // Create initial inspection items
@@ -21,7 +21,7 @@ const createInitialInspectionItems = (items: string[]): InspectionItemData[] => 
   return items.map((description, index) => ({
     id: index + 1,
     description,
-    name: `項目 ${index + 1}`, // Add name field required by InspectionItemData
+    name: `項目 ${index + 1}`,
     status: 'normal',
     note: '',
   }));
@@ -33,20 +33,18 @@ export const useInspectionForm = () => {
   // State for signature and photo
   const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [signatureDataURL, setSignatureDataURL] = useState<string | null>(null);
-  const [photoDataURL, setPhotoDataURL] = useState<string | null>(null);
+  const [photoDataURL, setPhotoDataURL] = useState<string | null>(null); // For preview
+  const [compressedPhotoFile, setCompressedPhotoFile] = useState<File | null>(null); // For upload
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [inspectionItems, setInspectionItems] = useState<InspectionItemData[]>([]);
   
-  // 使用 ref 來避免無限循環更新
   const hasSetInspectionItems = useRef(false);
 
-  // Fetch inspection items from JSON file
   useEffect(() => {
     const fetchInspectionItems = async () => {
       try {
-        // 使用 process.env.PUBLIC_URL 來獲取正確的基礎路徑
         const response = await fetch(`${process.env.PUBLIC_URL}/data/inspection_item.json`);
         const data = await response.json();
         if (data.FoundationStage) {
@@ -60,19 +58,17 @@ export const useInspectionForm = () => {
     fetchInspectionItems();
   }, []);
 
-  // Initialize form with default values
   const initialValues: FoundationStageFormData = {
-    date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD format
+    date: new Date().toISOString().split('T')[0],
     siteName: '',
     location: '',
     inspector: '',
-    inspectionItems: [], // Will be populated from the JSON file
+    inspectionItems: [],
     otherNotes: '',
     signature: null,
     photo: null,
   };
 
-  // Form validation function
   const validateForm = (values: FoundationStageFormData) => {
     const errors: Record<string, string> = {};
     
@@ -87,21 +83,17 @@ export const useInspectionForm = () => {
     return Object.keys(errors).length ? errors : null;
   };
 
-  // Handle form submission
   const handleSubmit = async (values: FoundationStageFormData) => {
     try {
       setIsSubmitting(true);
       
-      // In a real application, you would send this data to your backend
-      // For now, we'll simulate a successful submission
       console.log('Form submitted:', {
         ...values,
         signature: signatureDataURL,
-        photo: photoDataURL,
+        photo: compressedPhotoFile, // Use the compressed file for submission
         inspector: user?.name || user?.email || '未登入用戶',
       });
       
-      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       setSubmitSuccess(true);
@@ -115,34 +107,26 @@ export const useInspectionForm = () => {
     }
   };
 
-  // Initialize form hook
   const { values, errors, touched, handleChange, handleSubmit: submitForm } = useForm({
     initialValues,
     validate: validateForm,
     onSubmit: handleSubmit,
   });
   
-  // Update form values when inspection items are loaded
   useEffect(() => {
     if (inspectionItems.length > 0 && !hasSetInspectionItems.current) {
-      // 設置標記以避免重複更新
       hasSetInspectionItems.current = true;
-      
-      // Update the inspectionItems in the form values
-      // Use any type to avoid TypeScript errors with complex form values
       handleChange({
         target: { name: 'inspectionItems', value: inspectionItems }
       } as any);
     }
   }, [inspectionItems, handleChange]);
 
-  // Handle status change for inspection items
   const handleStatusChange = (id: number, status: 'normal' | 'needsImprovement') => {
     const updatedItems = values.inspectionItems.map(item => 
       item.id === id ? { ...item, status } : item
     );
     
-    // Update form values
     handleChange({
       target: {
         name: 'inspectionItems',
@@ -151,13 +135,11 @@ export const useInspectionForm = () => {
     } as unknown as React.ChangeEvent<HTMLInputElement>);
   };
 
-  // Handle note change for inspection items
   const handleNoteChange = (id: number, note: string) => {
     const updatedItems = values.inspectionItems.map(item => 
       item.id === id ? { ...item, note } : item
     );
     
-    // Update form values
     handleChange({
       target: {
         name: 'inspectionItems',
@@ -166,45 +148,43 @@ export const useInspectionForm = () => {
     } as unknown as React.ChangeEvent<HTMLInputElement>);
   };
 
-  // Handle signature confirmation
+  // New handler for photo changes from PhotoUpload component
+  const handlePhotoChange = (newPhotoDataURL: string | null, newCompressedFile: File | null) => {
+    setPhotoDataURL(newPhotoDataURL);
+    setCompressedPhotoFile(newCompressedFile);
+  };
+
   const handleSignatureConfirm = (signatureDataURL: string) => {
     setSignatureDataURL(signatureDataURL);
     setShowSignaturePad(false);
-    
-    // Submit form
     submitForm({ preventDefault: () => {} } as React.FormEvent<HTMLFormElement>);
   };
 
-  // Handle print functionality
   const handlePrint = () => {
     window.print();
   };
 
-  // Handle export to PDF functionality
   const handleExportToPDF = async () => {
-    // 獲取表單元素
     const formElement = document.querySelector('.foundation-stage-form-container') as HTMLElement;
     if (!formElement) {
       console.error('找不到表單元素');
       return;
     }
 
-    // 設定檔案名稱格式：案場名稱_每日巡檢紀錄-基礎階段_日期.pdf
     const siteNameForFile = values.siteName || '未提供案場';
     const dateForFile = values.date || new Date().toISOString().split('T')[0];
     const fileName = `${siteNameForFile}_每日巡檢紀錄-基礎階段_${dateForFile}.pdf`;
     
-    // 需要隱藏的元素
     const elementsToHide = formElement.querySelectorAll('.form-actions button, .dashboard-header');
     
     try {
       const success = await exportElementToPDF(formElement, fileName, {
         hideElements: elementsToHide,
-        scale: 3,  // Keep high scale for clarity on PDF
-        margin: 10, // Page margin in mm
+        scale: 3,
+        margin: 10,
         pageFormat: 'a4',
-        orientation: 'p', // portrait
-        enforcedWidth: 800, // Force desktop width (matches .foundation-stage-form-container max-width)
+        orientation: 'p',
+        enforcedWidth: 800,
       });
       
       if (success) {
@@ -217,7 +197,6 @@ export const useInspectionForm = () => {
     }
   };
 
-  // Get date constraints
   const today = new Date().toISOString().split('T')[0];
   const threeDaysAgo = new Date();
   threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
@@ -235,7 +214,7 @@ export const useInspectionForm = () => {
     setShowSignaturePad,
     signatureDataURL,
     photoDataURL,
-    setPhotoDataURL,
+    handlePhotoChange, // Expose the new handler
     isSubmitting,
     submitSuccess,
     submitError,

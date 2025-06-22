@@ -1,44 +1,63 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import imageCompression from 'browser-image-compression';
 
 interface PhotoUploadProps {
-  onPhotoChange: (photoDataURL: string | null) => void;
+  // 更新 props 接口，同時傳遞預覽 URL 和壓縮後的 File 物件
+  onPhotoChange: (photoDataURL: string | null, compressedFile: File | null) => void;
   photoDataURL: string | null;
 }
 
 const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }) => {
+  // 使用 useEffect Hook 來管理 Object URL 的生命週期，這是防止記憶體洩漏的關鍵
+  useEffect(() => {
+    // 這個 effect 的返回函式是一個 cleanup function
+    // 它會在 component unmount 或 photoDataURL 改變時執行
+    return () => {
+      if (photoDataURL) {
+        // 釋放先前創建的 Object URL，以回收瀏覽器記憶體
+        URL.revokeObjectURL(photoDataURL);
+        console.log(`已釋放 Object URL，防止記憶體洩漏`);
+      }
+    };
+  }, [photoDataURL]); // 這個 effect 依賴於 photoDataURL
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     if (file) {
       console.log(`原始檔案大小: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
-      console.log(`原始檔案類型: ${file.type}`);
-      if (file.size > 5 * 1024 * 1024) {
-        alert("照片過大，請重新拍攝 (小於 5MB)");
-        return onPhotoChange(null);
-      }
 
-      // 設定壓縮選項
+      // 調整壓縮設定以更積極地減少記憶體使用
       const options = {
-        maxSizeMB: 1,          // 最大檔案大小 (例如 1MB)
-        maxWidthOrHeight: 1920, // 最大寬度或高度 (例如 1920px)
-        useWebWorker: true,    // 使用 Web Worker 以避免 UI 阻塞 (推薦)
-        fileType: 'image/jpeg', // 強制輸出為 JPG 格式
-        initialQuality: 0.8,   // 初始壓縮質量 (0 到 1 之間)
+        maxSizeMB: 0.8,         // 降低最大檔案大小至 0.8MB
+        maxWidthOrHeight: 1280, // 降低最大解析度至 1280px
+        useWebWorker: true,     // 在背景執行緒壓縮，避免 UI 卡頓
+        fileType: 'image/jpeg', // 確保輸出為廣泛支援的 JPG
+        initialQuality: 0.7,    // 稍微降低初始品質以增強壓縮率
+        onProgress: (p: number) => {
+          console.log(`壓縮進度: ${p}%`);
+        },
       };
 
       try {
-        // 壓縮圖片
+        console.log('開始進行圖片壓縮...');
         const compressedFile = await imageCompression(file, options);
+        console.log(`壓縮後檔案大小: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+
+        // 創建一個新的 Object URL 用於圖片預覽
         const objectURL = URL.createObjectURL(compressedFile);
-        onPhotoChange(objectURL);
+        
+        // 將新的預覽 URL 和壓縮後的 File 物件傳遞給父組件
+        onPhotoChange(objectURL, compressedFile);
 
       } catch (error) {
         console.error('圖片壓縮失敗:', error);
-        onPhotoChange(null); // 或者通知用戶壓縮失敗
+        alert('圖片處理失敗，請稍後再試或更換照片。');
+        onPhotoChange(null, null);
       }
     } else {
-      onPhotoChange(null); // 如果沒有選擇檔案，清除照片
+      // 如果沒有選擇檔案，清除照片
+      onPhotoChange(null, null);
     }
   };
 
@@ -64,7 +83,6 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
           <img src={photoDataURL} alt="現場照片" />
         </div>
       )}
-      {!photoDataURL}
     </div>
   );
 };
