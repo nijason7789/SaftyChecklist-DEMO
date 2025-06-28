@@ -1,0 +1,121 @@
+.image-annotator-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.image-annotator-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+}
+
+.image-annotator-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+}
+
+.image-annotator-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.image-annotator-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.image-annotator-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.save-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.save-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.close-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.image-annotator-toolbar {
+  display: flex;
+  padding: 10px 20px;
+  gap: 10px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+}
+
+.tool-button {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.tool-button.active {
+  background-color: #e0e0e0;
+  border-color: #aaa;
+}
+
+.tool-button.primary {
+  background-color: #2196f3;
+  color: white;
+  border-color: #2196f3;
+}
+
+.canvas-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .image-annotator-header {
+    padding: 8px 12px;
+  }
+  
+  .image-annotator-header h2 {
+    font-size: 1.2rem;
+  }
+  
+  .image-annotator-actions button {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+  
+  .image-annotator-toolbar {
+    padding: 8px 12px;
+    flex-wrap: wrap;
+  }
+  
+  .tool-button {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+}

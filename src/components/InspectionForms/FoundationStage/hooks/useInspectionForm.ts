@@ -5,7 +5,7 @@ import { useAuth } from '../../../../context/AuthContext';
 import { exportElementToPDF } from '../../../../utils/pdfExport';
 
 // Define form data interface
-export interface FoundationStageFormData {
+export interface InspectionFormData {
   date: string;
   siteName: string;
   location: string;
@@ -27,7 +27,17 @@ const createInitialInspectionItems = (items: string[]): InspectionItemData[] => 
   }));
 };
 
-export const useInspectionForm = () => {
+// Define available inspection stages as a type
+export type InspectionStage = 'FoundationStage' | 'StructureStage' | 'DecorationStage';
+
+// Define stage display names mapping
+export const stageDisplayNames: Record<InspectionStage, string> = {
+  FoundationStage: '基礎階段',
+  StructureStage: '結構階段',
+  DecorationStage: '裝修階段'
+};
+
+export const useInspectionForm = (stage: InspectionStage = 'FoundationStage') => {
   const { user } = useAuth();
   
   // State for signature and photo
@@ -47,8 +57,10 @@ export const useInspectionForm = () => {
       try {
         const response = await fetch(`${process.env.PUBLIC_URL}/data/inspection_item.json`);
         const data = await response.json();
-        if (data.FoundationStage) {
-          setInspectionItems(createInitialInspectionItems(data.FoundationStage));
+        if (data[stage]) {
+          setInspectionItems(createInitialInspectionItems(data[stage]));
+        } else {
+          console.error(`No inspection items found for stage: ${stage}`);
         }
       } catch (error) {
         console.error('Error fetching inspection items:', error);
@@ -56,9 +68,9 @@ export const useInspectionForm = () => {
     };
 
     fetchInspectionItems();
-  }, []);
+  }, [stage]); // Add stage as dependency to reload when it changes
 
-  const initialValues: FoundationStageFormData = {
+  const initialValues: InspectionFormData = {
     date: new Date().toISOString().split('T')[0],
     siteName: '',
     location: '',
@@ -69,7 +81,7 @@ export const useInspectionForm = () => {
     photo: null,
   };
 
-  const validateForm = (values: FoundationStageFormData) => {
+  const validateForm = (values: InspectionFormData) => {
     const errors: Record<string, string> = {};
     
     if (!values.siteName) {
@@ -83,7 +95,7 @@ export const useInspectionForm = () => {
     return Object.keys(errors).length ? errors : null;
   };
 
-  const handleSubmit = async (values: FoundationStageFormData) => {
+  const handleSubmit = async (values: InspectionFormData) => {
     try {
       setIsSubmitting(true);
       
@@ -173,7 +185,8 @@ export const useInspectionForm = () => {
 
     const siteNameForFile = values.siteName || '未提供案場';
     const dateForFile = values.date || new Date().toISOString().split('T')[0];
-    const fileName = `${siteNameForFile}_每日巡檢紀錄-基礎階段_${dateForFile}.pdf`;
+    const stageDisplayName = stageDisplayNames[stage] || '未知階段';
+    const fileName = `${siteNameForFile}_每日巡檢紀錄-${stageDisplayName}_${dateForFile}.pdf`;
     
     const elementsToHide = formElement.querySelectorAll('.form-actions button, .dashboard-header');
     

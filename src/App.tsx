@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import './App.css';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import { Register } from './components';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ErrorBoundary } from './components/common';
+import FoundationStagePage from './pages/InspectionForms/FoundationStage';
+import StructureStagePage from './pages/InspectionForms/StructureStage';
 
 // Theme toggle component
 const ThemeToggle: React.FC = () => {
@@ -37,12 +40,17 @@ const MainContent: React.FC = () => {
     setShowRegister(prev => !prev);
   };
   
-  // Render Dashboard if authenticated, otherwise render Login or Register
+  // Render Routes if authenticated, otherwise render Login or Register
   return (
     <>
       <ThemeToggle />
       {isAuthenticated ? (
-        <Dashboard />
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/inspection/foundation" element={<FoundationStagePage />} />
+          <Route path="/inspection/structure" element={<StructureStagePage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       ) : (
         <div className="auth-container">
           {showRegister ? (
@@ -71,9 +79,11 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <ThemeProvider>
         <AuthProvider>
-          <div className="App">
-            <MainContent />
-          </div>
+          <BrowserRouter>
+            <div className="App">
+              <MainContent />
+            </div>
+          </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>

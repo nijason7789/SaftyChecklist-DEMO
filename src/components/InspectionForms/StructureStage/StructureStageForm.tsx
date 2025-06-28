@@ -3,18 +3,18 @@ import Alert from '../../common/Alert/Alert';
 import {
   FormHeader,
   InspectionTable,
-  PhotoUpload,
   SignaturePad,
-  FormActions
+  FormActions,
+  EnhancedPhotoUpload
 } from './components';
-import { useInspectionForm, InspectionStage, stageDisplayNames } from './hooks';
-import './FoundationStageForm.css';
+import { useInspectionForm, InspectionStage, stageDisplayNames } from '../FoundationStage/hooks';
+import '../FoundationStage/FoundationStageForm.css';
 
-interface FoundationStageFormProps {
+interface StructureStageFormProps {
   stage?: InspectionStage;
 }
 
-const FoundationStageForm: React.FC<FoundationStageFormProps> = ({ stage = 'FoundationStage' }) => {
+const StructureStageForm: React.FC<StructureStageFormProps> = ({ stage = 'StructureStage' }) => {
   // Use the custom hook for form logic
   const {
     values,
@@ -25,7 +25,7 @@ const FoundationStageForm: React.FC<FoundationStageFormProps> = ({ stage = 'Foun
     setShowSignaturePad,
     signatureDataURL,
     photoDataURL,
-    handlePhotoChange, // Use the new handler
+    handlePhotoChange,
     isSubmitting,
     submitSuccess,
     submitError,
@@ -75,9 +75,9 @@ const FoundationStageForm: React.FC<FoundationStageFormProps> = ({ stage = 'Foun
         />
 
         <div className="signature-photo-container">
-          {/* Photo Upload Component */}
-          <PhotoUpload
-            onPhotoChange={handlePhotoChange} // Pass the new handler to the component
+          {/* Enhanced Photo Upload Component with Annotation */}
+          <EnhancedPhotoUpload
+            onPhotoChange={handlePhotoChange}
             photoDataURL={photoDataURL}
           />
 
@@ -140,4 +140,4 @@ const FoundationStageForm: React.FC<FoundationStageFormProps> = ({ stage = 'Foun
   );
 };
 
-export default FoundationStageForm;
+export default StructureStageForm;

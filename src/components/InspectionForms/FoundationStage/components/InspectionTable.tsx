@@ -1,5 +1,5 @@
 import React from 'react';
-import InspectionItem, { InspectionItemProps } from './InspectionItem';
+import InspectionItem from './InspectionItem';
 
 export interface InspectionItemData {
   id: number;

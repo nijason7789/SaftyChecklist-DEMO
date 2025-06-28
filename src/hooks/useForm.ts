@@ -48,7 +48,8 @@ function useForm<T extends Record<string, any>>({
     if (!validate) return null;
     
     const validationErrors = validate(values);
-    return validationErrors && validationErrors[name] ? validationErrors[name] : null;
+    // Ensure we handle the case where validationErrors[name] could be undefined
+    return validationErrors && name in validationErrors ? validationErrors[name] || null : null;
   };
 
   /**

@@ -1,2 +1,2 @@
-export { default as useInspectionForm } from './useInspectionForm';
-export type { FoundationStageFormData } from './useInspectionForm';
+export { default as useInspectionForm, stageDisplayNames } from './useInspectionForm';
+export type { InspectionFormData, InspectionStage } from './useInspectionForm';
