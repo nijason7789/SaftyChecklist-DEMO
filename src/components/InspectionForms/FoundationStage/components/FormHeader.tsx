@@ -125,6 +125,16 @@ const FormHeader: React.FC<FormHeaderProps> = ({
             onChange={() => {}} 
           />
         </div>
+        <div className="form-field">
+          <label htmlFor="department">所屬部門：</label>
+          <div className="department-display">職安課</div>
+          <input 
+            type="hidden" 
+            id="department"
+            value="職安課"
+            onChange={() => {}} 
+          />
+        </div>
       </div>
     </div>
   );
