@@ -173,7 +173,56 @@ export const useInspectionForm = (stage: InspectionStage = 'FoundationStage') =>
   };
 
   const handlePrint = () => {
+    // 保存原始標題
+    const originalTitle = document.title;
+    
+    // 設置檔名作為頁面標題 (大多數瀏覽器會使用頁面標題作為 PDF 的預設檔名)
+    const siteNameForFile = values.siteName || '未提供案場';
+    const dateForFile = values.date || new Date().toISOString().split('T')[0];
+    const stageDisplayName = stageDisplayNames[stage] || '未知階段';
+    const fileName = `${siteNameForFile}_每日巡檢紀錄-${stageDisplayName}_${dateForFile}`;
+    document.title = fileName;
+    
+    // 在列印前找到並隱藏空的輸入欄位和未選中的 radio button
+    const formElement = document.querySelector('.foundation-stage-form-container') as HTMLElement;
+    if (!formElement) {
+      console.error('找不到表單元素');
+      return;
+    }
+    
+    // 1. 隱藏空的文本輸入欄位
+    const emptyInputs = formElement.querySelectorAll('.inspection-table input[type="text"]') as NodeListOf<HTMLInputElement>;
+    const hiddenElements: HTMLElement[] = [];
+    
+    emptyInputs.forEach(input => {
+      if (!input.value.trim()) {
+        hiddenElements.push(input);
+        input.style.display = 'none';
+      }
+    });
+    
+    // 2. 隱藏未選中的 radio button
+    const radioInputs = formElement.querySelectorAll('.inspection-table input[type="radio"]') as NodeListOf<HTMLInputElement>;
+    
+    radioInputs.forEach(radio => {
+      if (!radio.checked) {
+        hiddenElements.push(radio);
+        radio.style.display = 'none';
+      }
+    });
+    
+    // 列印
     window.print();
+    
+    // 恢復所有被隱藏的元素
+    hiddenElements.forEach(element => {
+      element.style.display = '';
+    });
+    
+    // 恢復原始標題
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 100);
   };
 
   const handleExportToPDF = async () => {
@@ -183,30 +232,70 @@ export const useInspectionForm = (stage: InspectionStage = 'FoundationStage') =>
       return;
     }
 
+    // 設置加載狀態
+    setIsSubmitting(true);
+
     const siteNameForFile = values.siteName || '未提供案場';
     const dateForFile = values.date || new Date().toISOString().split('T')[0];
     const stageDisplayName = stageDisplayNames[stage] || '未知階段';
     const fileName = `${siteNameForFile}_每日巡檢紀錄-${stageDisplayName}_${dateForFile}.pdf`;
     
-    const elementsToHide = formElement.querySelectorAll('.form-actions button, .dashboard-header');
-    
     try {
-      const success = await exportElementToPDF(formElement, fileName, {
-        hideElements: elementsToHide,
-        scale: 3,
-        margin: 10,
-        pageFormat: 'a4',
-        orientation: 'p',
-        enforcedWidth: 800,
+      // 找到並隱藏不需要在 PDF 中顯示的元素
+      const buttonsToHide = formElement.querySelectorAll('.action-buttons');
+      const headerToHide = formElement.querySelector('.dashboard-link');
+      const hiddenElements: HTMLElement[] = [];
+
+      // 1. 自動隱藏空的輸入欄位
+      const emptyInputs = formElement.querySelectorAll('.inspection-table input[type="text"]') as NodeListOf<HTMLInputElement>;
+
+      emptyInputs.forEach(input => {
+        if (!input.value.trim()) {
+          hiddenElements.push(input);
+          input.style.display = 'none';
+        }
       });
       
-      if (success) {
-        console.log('PDF 導出成功:', fileName);
-      } else {
-        console.error('PDF 導出失敗');
+      // 2. 隱藏未選中的 radio button
+      const radioInputs = formElement.querySelectorAll('.inspection-table input[type="radio"]') as NodeListOf<HTMLInputElement>;
+      
+      radioInputs.forEach(radio => {
+        if (!radio.checked) {
+          hiddenElements.push(radio);
+          radio.style.display = 'none';
+        }
+      });
+
+      // 自動隱藏按鈕和頁頭連結
+      buttonsToHide.forEach((button) => {
+        (button as HTMLElement).style.display = 'none';
+      });
+      if (headerToHide) {
+        (headerToHide as HTMLElement).style.display = 'none';
       }
-    } catch (exportError) {
-      console.error('PDF 導出過程中發生意外錯誤:', exportError);
+
+      // 使用導出工具導出 PDF
+      await exportElementToPDF(formElement, fileName, {
+        margin: 10,
+        scale: 0.95,
+      });
+
+      // 恢復隱藏的元素
+      buttonsToHide.forEach((button) => {
+        (button as HTMLElement).style.display = '';
+      });
+      if (headerToHide) {
+        (headerToHide as HTMLElement).style.display = '';
+      }
+
+      // 恢復所有被隱藏的元素
+      hiddenElements.forEach(element => {
+        element.style.display = '';
+      });
+    } catch (error) {
+      console.error('PDF 導出過程中發生意外錯誤:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

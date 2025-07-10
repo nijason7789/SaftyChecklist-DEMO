@@ -36,10 +36,19 @@ const StructureStageForm: React.FC<StructureStageFormProps> = ({ stage = 'Struct
   
   return (
     <div className="foundation-stage-form-container">
-      <div className="form-header">
-        <h1>翊豐營造股份有限公司</h1>
-        <h2>每日巡檢紀錄-{stageDisplayNames[stage]}</h2>
-      </div>
+          <div className="form-header">
+            <div className="header-content">
+              <img 
+                src="	https://zfeng.com.tw/wp-content/uploads/2023/05/logo-color.png" 
+                alt="翊豐營造股份有限公司 LOGO" 
+                className="company-logo" 
+              />
+              <div className="header-text">
+                <h1>翊豐營造股份有限公司</h1>
+                <h2>每日巡檢紀錄-{stageDisplayNames[stage]}</h2>
+              </div>
+            </div>
+          </div>
 
       <form className="inspection-form" onSubmit={(e) => {
         e.preventDefault();
