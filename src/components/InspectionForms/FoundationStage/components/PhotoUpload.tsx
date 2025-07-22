@@ -138,18 +138,6 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
         return;
       }
       
-      // 在請求相機權限前顯示自定義通知
-      const userConfirmed = window.confirm(
-        '我們需要使用您的相機來拍攝工地照片。\n\n' + 
-        '點擊「確定」後，瀏覽器會要求您授予相機權限。\n' +
-        '請選擇「允許」以繼續。'
-      );
-      
-      if (!userConfirmed) {
-        console.log('用戶取消了相機權限請求');
-        return;
-      }
-      
       // 請求相機權限並獲取媒體流
       const constraints = {
         video: { 
@@ -159,43 +147,60 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
         }
       };
       
-      alert('請求相機權限...');
-      console.log('請求相機權限...');
+      console.log('正在請求相機權限...');
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      alert('相機權限已授予');
-      console.log('相機權限已授予');
+      console.log('相機權限已獲得，媒體流已建立');
       
       // 保存媒體流引用
       streamRef.current = stream;
       
-      // 將媒體流連接到視頻元素
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => {
-          videoRef.current?.play().catch(err => {
-            console.error('無法播放相機預覽:', err);
-          });
-        };
-        
-        // 創建 ImageCapture 實例
-        try {
-          const track = stream.getVideoTracks()[0];
-          if (typeof ImageCapture !== 'undefined') {
-            imageCapture.current = new ImageCapture(track);
-            setIsCameraOpen(true);
-          } else {
-            // 如果 ImageCapture API 不可用，使用備用方案
-            alert('ImageCapture API 不可用，使用備用方案');
-            console.log('ImageCapture API 不可用，使用備用方案');
-            setIsCameraOpen(true); // 仍然顯示相機預覽，但將使用 canvas 捕捉
+      // 先設置 isCameraOpen 為 true，確保 video 元素已在 DOM 中
+      setIsCameraOpen(true);
+      
+      // 使用 setTimeout 確保 video 元素已經渲染到 DOM 中
+      setTimeout(() => {
+        // 將媒體流連接到視頻元素
+        if (videoRef.current) {
+          console.log('將媒體流連接到視頻元素');
+          videoRef.current.srcObject = stream;
+          
+          // 確保視頻元素可見
+          videoRef.current.style.display = 'block';
+          videoRef.current.style.width = '100%';
+          videoRef.current.style.height = 'auto';
+          
+          videoRef.current.onloadedmetadata = () => {
+            console.log('視頻元素已載入元數據，嘗試播放');
+            if (videoRef.current) {
+              videoRef.current.play()
+                .then(() => console.log('相機預覽開始播放'))
+                .catch(err => {
+                  console.error('無法播放相機預覽:', err);
+                  alert(`無法播放相機預覽: ${err.message}`);
+                });
+            }
+          };
+          
+          // 創建 ImageCapture 實例
+          try {
+            const track = stream.getVideoTracks()[0];
+            if (typeof ImageCapture !== 'undefined') {
+              imageCapture.current = new ImageCapture(track);
+              console.log('ImageCapture 實例已創建');
+            } else {
+              // 如果 ImageCapture API 不可用，使用備用方案
+              console.log('ImageCapture API 不可用，使用備用方案');
+              // 仍然顯示相機預覽，但將使用 canvas 捕捉
+            }
+          } catch (error) {
+            console.error('ImageCapture 創建失敗:', error);
+            // 繼續顯示相機預覽，但將使用備用方案
           }
-        } catch (error) {
-          alert(`ImageCapture 創建失敗: ${error instanceof Error ? error.message : '未知錯誤'}`);
-          console.error('ImageCapture 創建失敗:', error);
-          // 繼續顯示相機預覽，但將使用備用方案
-          setIsCameraOpen(true);
+        } else {
+          console.error('視頻元素引用不存在');
+          alert('無法初始化相機預覽，請重試');
         }
-      }
+      }, 100); // 給予 React 足夠時間渲染 video 元素
     } catch (error) {
       alert(`無法訪問相機: ${error instanceof Error ? error.message : '未知錯誤'}`);
       console.error('無法訪問相機:', error);
@@ -367,18 +372,48 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
       
       {/* 相機開啟時顯示預覽和拍照按鈕 */}
       {isCameraOpen && (
-        <div className="camera-container">
+        <div className="camera-container" style={{ 
+          position: 'relative', 
+          width: '100%', 
+          maxWidth: '500px', 
+          margin: '0 auto',
+          border: '1px solid #ccc',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          backgroundColor: '#000'
+        }}>
           <video 
             ref={videoRef} 
             autoPlay 
             playsInline 
             className="camera-preview"
+            style={{
+              display: 'block',
+              width: '100%',
+              height: 'auto',
+              minHeight: '300px',
+              objectFit: 'cover',
+              backgroundColor: '#000'
+            }}
           />
-          <div className="camera-controls">
+          <div className="camera-controls" style={{
+            display: 'flex',
+            justifyContent: 'space-around',
+            padding: '10px',
+            backgroundColor: 'rgba(0,0,0,0.5)'
+          }}>
             <button 
               type="button" 
               className="capture-button"
               onClick={takePhoto}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
             >
               拍照
             </button>
@@ -386,6 +421,14 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
               type="button" 
               className="cancel-button"
               onClick={stopCamera}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#f44336',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
             >
               取消
             </button>
