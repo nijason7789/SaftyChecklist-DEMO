@@ -41,6 +41,33 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
   const imageCapture = useRef<ImageCapture | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 當相機開啟時，防止背景滾動
+  useEffect(() => {
+    if (isCameraOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isCameraOpen]);
+  
+  // 添加 ESC 鍵關閉相機功能
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isCameraOpen) {
+        stopCamera();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isCameraOpen]);
+
   // 判斷是否為移動裝置
   useEffect(() => {
     const checkIfMobile = () => {
@@ -147,9 +174,7 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
         }
       };
       
-      console.log('正在請求相機權限...');
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      console.log('相機權限已獲得，媒體流已建立');
       
       // 保存媒體流引用
       streamRef.current = stream;
@@ -161,7 +186,6 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
       setTimeout(() => {
         // 將媒體流連接到視頻元素
         if (videoRef.current) {
-          console.log('將媒體流連接到視頻元素');
           videoRef.current.srcObject = stream;
           
           // 確保視頻元素可見
@@ -170,10 +194,8 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
           videoRef.current.style.height = 'auto';
           
           videoRef.current.onloadedmetadata = () => {
-            console.log('視頻元素已載入元數據，嘗試播放');
             if (videoRef.current) {
               videoRef.current.play()
-                .then(() => console.log('相機預覽開始播放'))
                 .catch(err => {
                   console.error('無法播放相機預覽:', err);
                   alert(`無法播放相機預覽: ${err.message}`);
@@ -370,48 +392,85 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
         </div>
       )}
       
-      {/* 相機開啟時顯示預覽和拍照按鈕 */}
+      {/* 相機開啟時顯示全屏預覽和拍照按鈕 */}
       {isCameraOpen && (
-        <div className="camera-container" style={{ 
-          position: 'relative', 
-          width: '100%', 
-          maxWidth: '500px', 
-          margin: '0 auto',
-          border: '1px solid #ccc',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          backgroundColor: '#000'
+        <div className="camera-fullscreen-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: '#000',
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between'
         }}>
-          <video 
-            ref={videoRef} 
-            autoPlay 
-            playsInline 
-            className="camera-preview"
-            style={{
-              display: 'block',
-              width: '100%',
-              height: 'auto',
-              minHeight: '300px',
-              objectFit: 'cover',
-              backgroundColor: '#000'
-            }}
-          />
-          <div className="camera-controls" style={{
+          {/* 頂部標題和關閉按鈕 */}
+          <div className="camera-header" style={{
+            padding: '10px 20px',
             display: 'flex',
-            justifyContent: 'space-around',
-            padding: '10px',
-            backgroundColor: 'rgba(0,0,0,0.5)'
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0,0,0,0.7)'
+          }}>
+            <h3 style={{ color: 'white', margin: 0 }}>拍攝照片</h3>
+            <button 
+              type="button"
+              onClick={stopCamera}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'white',
+                fontSize: '24px',
+                cursor: 'pointer',
+                padding: '5px'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+          
+          {/* 視頻預覽佔據大部分屏幕 */}
+          <div className="camera-preview-container" style={{
+            flex: 1,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            overflow: 'hidden'
+          }}>
+            <video 
+              ref={videoRef} 
+              autoPlay 
+              playsInline 
+              className="camera-preview"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover'
+              }}
+            />
+          </div>
+          
+          {/* 底部相機控制按鈕 */}
+          <div className="camera-controls" style={{
+            padding: '20px',
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '20px',
+            backgroundColor: 'rgba(0,0,0,0.7)'
           }}>
             <button 
               type="button" 
               className="capture-button"
               onClick={takePhoto}
               style={{
-                padding: '10px 20px',
+                padding: '15px 30px',
                 backgroundColor: '#4CAF50',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: '50px',
+                fontSize: '16px',
                 cursor: 'pointer'
               }}
             >
@@ -422,11 +481,12 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
               className="cancel-button"
               onClick={stopCamera}
               style={{
-                padding: '10px 20px',
+                padding: '15px 30px',
                 backgroundColor: '#f44336',
                 color: 'white',
                 border: 'none',
-                borderRadius: '4px',
+                borderRadius: '50px',
+                fontSize: '16px',
                 cursor: 'pointer'
               }}
             >
