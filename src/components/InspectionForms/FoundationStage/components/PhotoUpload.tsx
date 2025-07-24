@@ -36,21 +36,34 @@ interface PhotoUploadProps {
 const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }) => {
   const [isCameraOpen, setIsCameraOpen] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isLandscape, setIsLandscape] = useState<boolean>(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const imageCapture = useRef<ImageCapture | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 當相機開啟時，防止背景滾動
+  // 當相機開啟時，防止背景滾動並檢測屏幕方向
   useEffect(() => {
+    const checkOrientation = () => {
+      // 檢測是否為橫屏模式
+      setIsLandscape(window.innerWidth > window.innerHeight);
+    };
+    
     if (isCameraOpen) {
       document.body.style.overflow = 'hidden';
+      // 初始檢測屏幕方向
+      checkOrientation();
+      // 監聽屏幕方向變化
+      window.addEventListener('resize', checkOrientation);
+      window.addEventListener('orientationchange', checkOrientation);
     } else {
       document.body.style.overflow = '';
     }
     
     return () => {
       document.body.style.overflow = '';
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
     };
   }, [isCameraOpen]);
   
@@ -437,7 +450,8 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            position: 'relative' // 設為相對定位，讓控制按鈕可以相對於此容器定位
           }}>
             <video 
               ref={videoRef} 
@@ -452,26 +466,49 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
             />
           </div>
           
-          {/* 底部相機控制按鈕 */}
+          {/* 相機控制按鈕 - 根據屏幕方向調整位置 */}
           <div className="camera-controls" style={{
-            padding: '20px',
+            padding: isLandscape ? '0 20px' : '20px 0',
             display: 'flex',
             justifyContent: 'center',
+            alignItems: 'center',
             gap: '20px',
-            backgroundColor: 'rgba(0,0,0,0.7)'
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            position: 'absolute',
+            ...(isLandscape 
+              ? { // 橫屏模式 - 控制按鈕在右側
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: '120px',
+                  flexDirection: 'column'
+                } 
+              : { // 直屏模式 - 控制按鈕在底部，但避開系統導航欄
+                  left: 0,
+                  right: 0,
+                  bottom: '60px', // 留出足夠空間避開系統導航欄
+                  flexDirection: 'row'
+                }
+            )
           }}>
             <button 
               type="button" 
               className="capture-button"
               onClick={takePhoto}
               style={{
-                padding: '15px 30px',
+                padding: isLandscape ? '15px' : '15px 30px',
                 backgroundColor: '#4CAF50',
                 color: 'white',
                 border: 'none',
-                borderRadius: '50px',
+                borderRadius: isLandscape ? '50%' : '50px',
                 fontSize: '16px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                width: isLandscape ? '80px' : 'auto',
+                height: isLandscape ? '80px' : 'auto',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
               }}
             >
               拍照
@@ -481,13 +518,19 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
               className="cancel-button"
               onClick={stopCamera}
               style={{
-                padding: '15px 30px',
+                padding: isLandscape ? '15px' : '15px 30px',
                 backgroundColor: '#f44336',
                 color: 'white',
                 border: 'none',
-                borderRadius: '50px',
+                borderRadius: isLandscape ? '50%' : '50px',
                 fontSize: '16px',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                width: isLandscape ? '80px' : 'auto',
+                height: isLandscape ? '80px' : 'auto',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.3)'
               }}
             >
               取消
