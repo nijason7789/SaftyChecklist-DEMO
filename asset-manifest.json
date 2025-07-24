@@ -1,19 +1,19 @@
 {
   "files": {
     "main.css": "/SaftyChecklist-DEMO/static/css/main.0c1419e8.css",
-    "main.js": "/SaftyChecklist-DEMO/static/js/main.c84eed95.js",
+    "main.js": "/SaftyChecklist-DEMO/static/js/main.235246a7.js",
     "static/js/977.7799e7bc.chunk.js": "/SaftyChecklist-DEMO/static/js/977.7799e7bc.chunk.js",
     "static/js/455.230cebb8.chunk.js": "/SaftyChecklist-DEMO/static/js/455.230cebb8.chunk.js",
     "static/js/453.26904eb8.chunk.js": "/SaftyChecklist-DEMO/static/js/453.26904eb8.chunk.js",
     "index.html": "/SaftyChecklist-DEMO/index.html",
     "main.0c1419e8.css.map": "/SaftyChecklist-DEMO/static/css/main.0c1419e8.css.map",
-    "main.c84eed95.js.map": "/SaftyChecklist-DEMO/static/js/main.c84eed95.js.map",
+    "main.235246a7.js.map": "/SaftyChecklist-DEMO/static/js/main.235246a7.js.map",
     "977.7799e7bc.chunk.js.map": "/SaftyChecklist-DEMO/static/js/977.7799e7bc.chunk.js.map",
     "455.230cebb8.chunk.js.map": "/SaftyChecklist-DEMO/static/js/455.230cebb8.chunk.js.map",
     "453.26904eb8.chunk.js.map": "/SaftyChecklist-DEMO/static/js/453.26904eb8.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.0c1419e8.css",
-    "static/js/main.c84eed95.js"
+    "static/js/main.235246a7.js"
   ]
 }
