@@ -336,7 +336,6 @@ const PhotoUpload: React.FC<PhotoUploadProps> = ({ onPhotoChange, photoDataURL }
   const processPhoto = async (blob: Blob) => {
     // 如果檔案大小不超過 5MB，直接使用原始檔案
     if (blob.size <= 5 * 1024 * 1024) {
-      alert('檔案大小小於 5MB，跳過壓縮');
       console.log('檔案大小小於 5MB，跳過壓縮');
       const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
       const objectURL = URL.createObjectURL(blob);
